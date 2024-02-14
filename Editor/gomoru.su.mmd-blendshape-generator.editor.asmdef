@@ -1,11 +1,16 @@
 {
     "name": "gomoru.su.mmd-blendshape-generator.editor",
-    "references": [ ],
+    "rootNamespace": "",
+    "references": [
+        "gomoru.su.mmd-blendshape-generator.runtime",
+        "nadena.dev.ndmf",
+        "nadena.dev.modular-avatar.core"
+    ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": false,
