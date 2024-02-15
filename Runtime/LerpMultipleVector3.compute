@@ -1,0 +1,36 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+struct Blendshape
+{
+    uint index;
+    float3 position;
+    float3 normal;
+    float3 tangent;
+};
+
+float Lerp;
+uint StartIndex;
+RWStructuredBuffer<Blendshape> Blendshapes;
+RWStructuredBuffer<Blendshape> Input;
+RWStructuredBuffer<Blendshape> Output;
+
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x + id.y * 128;
+    
+    Blendshape i = Input[index + StartIndex];
+    Blendshape b = Blendshapes[StartIndex + index];
+    Blendshape o;
+    o.position = lerp(i.position, b.position, Lerp);
+    o.normal = lerp(i.normal, b.normal, Lerp);
+    o.tangent = lerp(i.tangent, b.tangent, Lerp);
+    o.index = index;
+
+    Output[index] = o;
+}
