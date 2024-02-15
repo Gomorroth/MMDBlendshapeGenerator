@@ -39,10 +39,13 @@ namespace gomoru.su.MMDBlendshapeGenerator
                     var name = origmesh.GetBlendShapeName(i);
                     var shapeWeight = origmesh.GetBlendShapeFrameWeight(i, 0);
 
-                    if (sources.FirstOrDefault(x => x.Name == name) is { Datas: { Count: > 0 } } source)
+                    if (sources.FirstOrDefault(x => x.Name == name) is { Datas: { Count: > 0 } datas } source && !datas.All(x => x.Weight == 0))
                     {
                         foreach (var data in source.Datas)
                         {
+                            if (data.Weight == 0)
+                                continue;
+                                
                             var targetIdx = origmesh.GetBlendShapeIndex(data.Name);
                             if (targetIdx == -1)
                                 continue;
