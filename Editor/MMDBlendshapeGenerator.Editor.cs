@@ -20,10 +20,8 @@ namespace gomoru.su.MMDBlendshapeGenerator
         private SerializedProperty sources;
         private Vector2 scrollPosition;
 
-        private static AnimationModeDriver DefaultDriver => _driver ? _driver : _driver = CreateDriver();
-        private static AnimationModeDriver _driver;
-
         private string _previewTarget;
+        private SkinnedMeshRenderer _temporarySMR;
 
         private static readonly GUIContent PreviewTooltip = new GUIContent("", "Preview");
 
@@ -40,6 +38,8 @@ namespace gomoru.su.MMDBlendshapeGenerator
             AnimationMode.StopAnimationMode();
 
             EditorApplication.update -= Update;
+            if (_temporarySMR != null)
+                GameObject.DestroyImmediate(_temporarySMR.gameObject);
         }
 
         private void Update()
@@ -47,11 +47,23 @@ namespace gomoru.su.MMDBlendshapeGenerator
             if (_previewTarget != null && AnimationMode.InAnimationMode())
             {
                 var self = target as Self;
-
+                var body = self.Body.GetComponent<SkinnedMeshRenderer>();
                 var anim = new AnimationClip();
                 foreach (var data in self.Sources.FirstOrDefault(x => x.Name == _previewTarget).Datas)
                 {
-                    anim.SetCurve("", typeof(SkinnedMeshRenderer), $"blendShape.{data.Name}", AnimationCurve.Constant(0, 0, data.Weight * 100));
+                    var weight = Mathf.Abs(data.Weight);
+                    var idx = body.sharedMesh.GetBlendShapeIndex(data.Name);
+                    if (idx == -1)
+                        continue;
+                    var original = _temporarySMR.GetBlendShapeWeight(idx);
+                    if (data.Weight >= 0)
+                    {
+                        anim.SetCurve("", typeof(SkinnedMeshRenderer), $"blendShape.{data.Name}", AnimationCurve.Constant(0, 0, original + weight * 100));
+                    }
+                    else
+                    {
+                        anim.SetCurve("", typeof(SkinnedMeshRenderer), $"blendShape.{data.Name}", AnimationCurve.Constant(0, 0, original * (1 - weight)));
+                    }
                 }
                 AnimationMode.BeginSampling();
                 AnimationMode.SampleAnimationClip(self.Body, anim, 0);
@@ -63,7 +75,6 @@ namespace gomoru.su.MMDBlendshapeGenerator
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            var self = target as Self;
 
             EditorGUI.BeginChangeCheck();
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight * 20));
@@ -82,11 +93,34 @@ namespace gomoru.su.MMDBlendshapeGenerator
                     if (!flag)
                     {
                         _previewTarget = null;
-                        AnimationMode.StopAnimationMode(); 
+                        AnimationMode.StopAnimationMode();
+                        if (_temporarySMR != null)
+                            GameObject.DestroyImmediate(_temporarySMR.gameObject);
                     }
                     else
                     {
                         _previewTarget = name;
+
+                        if (_temporarySMR != null)
+                            GameObject.DestroyImmediate(_temporarySMR.gameObject);
+                        var self = target as Self;
+                        var temp = GameObject.Instantiate(self.Body);
+                        temp.SetActive(false);
+                        temp.hideFlags = HideFlags.HideAndDontSave;
+                        temp.transform.parent = null;
+
+                        foreach(var x in temp.GetComponents<Component>())
+                        {
+                            if (x is not (SkinnedMeshRenderer or Transform))
+                                GameObject.DestroyImmediate(x);
+                        }
+                        foreach (Transform x in temp.transform)
+                        {
+                            GameObject.DestroyImmediate(x);
+                        }
+
+                        _temporarySMR = temp.GetComponent<SkinnedMeshRenderer>();
+
                         AnimationMode.StartAnimationMode();
                     }
                 }

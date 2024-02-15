@@ -64,7 +64,7 @@ namespace gomoru.su.MMDBlendshapeGenerator
                 for(int i = 0; i < origmesh.blendShapeCount; i++)
                 {
                     var name = origmesh.GetBlendShapeName(i);
-                    var weight = origmesh.GetBlendShapeFrameWeight(i, 0);
+                    var shapeWeight = origmesh.GetBlendShapeFrameWeight(i, 0);
 
                     if (sources.FirstOrDefault(x => x.Name == name) is { Datas: { Count: > 0 } } source)
                     {
@@ -76,11 +76,14 @@ namespace gomoru.su.MMDBlendshapeGenerator
 
                             origmesh.GetBlendShapeFrameVertices(targetIdx, 0, verticies2, normals2, tangents2);
 
+                            var weight = Mathf.Abs(data.Weight);
+                            float isCancel = data.Weight < 0 ? -1 : 1;
+
                             for (int i2 = 0; i2 < vertexCount; i2++)
                             {
-                                verticies[i2] = Vector3.Lerp(verticies[i2], verticies[i2] + verticies2[i2], data.Weight);
-                                normals[i2] = Vector3.Lerp(normals[i2], normals[i2] + normals2[i2], data.Weight);
-                                tangents[i2] = Vector3.Lerp(tangents[i2], tangents[i2] + tangents2[i2], data.Weight);
+                                verticies[i2] = Vector3.Lerp(verticies[i2], verticies[i2] + verticies2[i2] * isCancel, weight);
+                                normals[i2] = Vector3.Lerp(normals[i2], normals[i2] + normals2[i2] * isCancel, weight);
+                                tangents[i2] = Vector3.Lerp(tangents[i2], tangents[i2] + tangents2[i2] * isCancel, weight);
                             }
                         }
                     }
@@ -89,7 +92,7 @@ namespace gomoru.su.MMDBlendshapeGenerator
                         origmesh.GetBlendShapeFrameVertices(i, 0, verticies, normals, tangents);
                     }
 
-                    mesh.AddBlendShapeFrame(name, weight, verticies, normals, tangents);
+                    mesh.AddBlendShapeFrame(name, shapeWeight, verticies, normals, tangents);
 
                     verticies.Clear();
                     normals.Clear();
