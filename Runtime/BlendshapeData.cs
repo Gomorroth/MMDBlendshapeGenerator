@@ -8,7 +8,7 @@ namespace gomoru.su.MMDBlendshapeGenerator
     public struct BlendshapeData
     {
         public string Name;
-        [Range(0, 1)]
+        [Range(-1, 1)]
         public float Weight;
     }
 }
