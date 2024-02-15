@@ -49,8 +49,9 @@ namespace gomoru.su.MMDBlendshapeGenerator
 
                             origmesh.GetBlendShapeFrameVertices(targetIdx, 0, verticies2, normals2, tangents2);
 
+                            var origweight = smr.GetBlendShapeWeight(targetIdx) / 100;
                             var weight = Mathf.Abs(data.Weight);
-                            float isCancel = data.Weight < 0 ? -1 : 1;
+                            float isCancel = data.Weight < 0 ? -origweight : 1;
 
                             for (int i2 = 0; i2 < vertexCount; i2++)
                             {
