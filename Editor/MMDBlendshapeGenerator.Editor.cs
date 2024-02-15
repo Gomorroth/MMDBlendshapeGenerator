@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -42,7 +43,10 @@ namespace gomoru.su.MMDBlendshapeGenerator
                 var self = target as MMDBlendshapeGenerator;
                 var body = self.Body.GetComponent<SkinnedMeshRenderer>();
                 var anim = new AnimationClip();
-                foreach (var data in self.Sources.FirstOrDefault(x => x.Name == _previewTarget).Datas)
+                var datas = self.Sources.FirstOrDefault(x => x.Name == _previewTarget)?.Datas;
+                if (datas == null)
+                    return;
+                foreach (var data in datas)
                 {
                     var weight = Mathf.Abs(data.Weight);
                     var idx = body.sharedMesh.GetBlendShapeIndex(data.Name);
@@ -147,8 +151,12 @@ namespace gomoru.su.MMDBlendshapeGenerator
             {
                 foreach (var source in generator.Sources)
                 {
-                    source.Datas.Add(new() { Name = blendshape.Name, Weight = blendshape.Weight });
+                    source.Datas.Add(new() { Name = blendshape.Name, Weight = 0 });
                 }
+            }
+            foreach (var source in generator.Sources)
+            {
+                source.Datas.Add(new() { Name = source.Name, Weight = 1 });
             }
 
             EditorUtility.SetDirty(generator);
