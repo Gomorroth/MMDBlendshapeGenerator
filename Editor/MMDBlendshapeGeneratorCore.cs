@@ -1,16 +1,8 @@
-
-
-
-using System;
-using System.Buffers;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using gomoru.su.MMDBlendshapeGenerator;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 [assembly: ExportsPlugin(typeof(MMDBlendshapeGeneratorCore))]
@@ -19,25 +11,6 @@ namespace gomoru.su.MMDBlendshapeGenerator
 {
     public sealed class MMDBlendshapeGeneratorCore : Plugin<MMDBlendshapeGeneratorCore>
     {
-        [MenuItem("Test/ASduhuyiqhweq")]
-        public static void Mes12h()
-        {
-            var mesh = GameObject.Find("Body").GetComponent<SkinnedMeshRenderer>().sharedMesh;
-            using var data = mesh.GetBlendShapeBuffer();
-            var range = mesh.GetBlendShapeBufferRange(0);
-            Debug.Log(data.stride);
-            Debug.Log(Unsafe.SizeOf<Vector3>());
-        }
-
-        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 20)]
-        public struct Blendshape
-        {
-            public uint Index;
-            public Vector3 Position;
-            public Vector3 Normal;
-            public Vector3 Tangent;
-        }
-
         protected override void Configure()
         {
             InPhase(BuildPhase.Generating).Run("Generate MMD Blendshape", context =>

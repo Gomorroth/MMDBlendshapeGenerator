@@ -1,15 +1,8 @@
 ﻿#if UNITY_EDITOR
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
-using VRC.SDKBase;
-
-using Self = gomoru.su.MMDBlendshapeGenerator.MMDBlendshapeGenerator;
 
 namespace gomoru.su.MMDBlendshapeGenerator
 {
@@ -27,8 +20,8 @@ namespace gomoru.su.MMDBlendshapeGenerator
 
         internal void OnEnable()
         {
-            sources = serializedObject.FindProperty(nameof(Self.Sources));
-            body = serializedObject.FindProperty(nameof(Self.Body));
+            sources = serializedObject.FindProperty(nameof(MMDBlendshapeGenerator.Sources));
+            body = serializedObject.FindProperty(nameof(MMDBlendshapeGenerator.Body));
 
             EditorApplication.update += Update;
         }
@@ -46,7 +39,7 @@ namespace gomoru.su.MMDBlendshapeGenerator
         {
             if (_previewTarget != null && AnimationMode.InAnimationMode())
             {
-                var self = target as Self;
+                var self = target as MMDBlendshapeGenerator;
                 var body = self.Body.GetComponent<SkinnedMeshRenderer>();
                 var anim = new AnimationClip();
                 foreach (var data in self.Sources.FirstOrDefault(x => x.Name == _previewTarget).Datas)
@@ -103,7 +96,7 @@ namespace gomoru.su.MMDBlendshapeGenerator
 
                         if (_temporarySMR != null)
                             GameObject.DestroyImmediate(_temporarySMR.gameObject);
-                        var self = target as Self;
+                        var self = target as MMDBlendshapeGenerator;
                         var temp = GameObject.Instantiate(self.Body);
                         temp.SetActive(false);
                         temp.hideFlags = HideFlags.HideAndDontSave;
@@ -159,24 +152,6 @@ namespace gomoru.su.MMDBlendshapeGenerator
             }
 
             EditorUtility.SetDirty(generator);
-        }
-    }
-
-    internal static class SkinnedMeshRendererExt
-    {
-        public static IEnumerable<(string Name, int Index, float Weight)> EnumerateBlendshapes(this SkinnedMeshRenderer smr)
-        {
-            var mesh = smr.sharedMesh;
-            if (!mesh)
-                yield break;
-            var count = mesh.blendShapeCount;
-
-            for (int i = 0; i < count; i++)
-            {
-                var name = mesh.GetBlendShapeName(i);
-                var weight = smr.GetBlendShapeWeight(i);
-                yield return (name, i, weight);
-            }
         }
     }
 }
