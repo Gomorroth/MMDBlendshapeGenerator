@@ -1,6 +1,6 @@
 {
     "name": "gomoru.su.mmd-blendshape-generator",
-    "version": "1.0.0-rc.1",
+    "version": "1.0.0-rc.2",
     "displayName": "MMD Blendshape Generator",
     "description": "Non-destructive MMD Blendshape Generator",
     "url": "https://github.com/Gomorroth/MMDBlendshapeGenerator",
