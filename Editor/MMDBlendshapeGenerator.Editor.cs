@@ -142,11 +142,41 @@ namespace gomoru.su.MMDBlendshapeGenerator
             serializedObject.ApplyModifiedProperties();
         }
 
-        private static AnimationModeDriver CreateDriver()
+        [MenuItem("CONTEXT/MMDBlendshapeGenerator/Add blendshapes that already exist")]
+        public static void AddExistBlendshapes(MenuCommand menu)
         {
-            var driver = CreateInstance<AnimationModeDriver>();
-            driver.name = nameof(MMDBlendshapeGenerator);
-            return driver;
+            var generator = menu.context as MMDBlendshapeGenerator;
+            var smr = generator.GetComponent<SkinnedMeshRenderer>();
+
+            Undo.RecordObject(generator, "Add blendshapes that already exist");
+
+            foreach (var blendshape in smr.EnumerateBlendshapes().Where(x => x.Weight != 0))
+            {
+                foreach (var source in generator.Sources)
+                {
+                    source.Datas.Add(new() { Name = blendshape.Name, Weight = blendshape.Weight });
+                }
+            }
+
+            EditorUtility.SetDirty(generator);
+        }
+    }
+
+    internal static class SkinnedMeshRendererExt
+    {
+        public static IEnumerable<(string Name, int Index, float Weight)> EnumerateBlendshapes(this SkinnedMeshRenderer smr)
+        {
+            var mesh = smr.sharedMesh;
+            if (!mesh)
+                yield break;
+            var count = mesh.blendShapeCount;
+
+            for (int i = 0; i < count; i++)
+            {
+                var name = mesh.GetBlendShapeName(i);
+                var weight = smr.GetBlendShapeWeight(i);
+                yield return (name, i, weight);
+            }
         }
     }
 }
