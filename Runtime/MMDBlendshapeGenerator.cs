@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using VRC.SDKBase;
 
@@ -8,6 +9,9 @@ namespace gomoru.su.MMDBlendshapeGenerator
     public sealed class MMDBlendshapeGenerator : MonoBehaviour, IEditorOnly
     {
         public GameObject Body;
+
+        [SerializeField]
+        private bool Initialized = false;
         
         public BlendshapeSource[] Sources = new[]
         {
@@ -60,6 +64,41 @@ namespace gomoru.su.MMDBlendshapeGenerator
         {
             if (Body == null)
                 Body = gameObject;
+
+            if (Initialized)
+                return;
+
+            Initialized = true;
+
+            var smr = GetComponent<SkinnedMeshRenderer>();
+            var mesh = smr.sharedMesh;
+            if (mesh == null)
+                return;
+
+            int count = mesh.blendShapeCount;
+            for(int i = 0; i < count; i++)
+            {
+                var name = mesh.GetBlendShapeName(i);
+                var weight = smr.GetBlendShapeWeight(i);
+                if (weight == 0)
+                    continue;
+
+                foreach(var source in Sources)
+                {
+                    if (!source.Datas.Any(x => x.Name == name))
+                        source.Datas.Add(new() { Name = name, Weight = 0 });
+                }
+            }
+
+            foreach (var source in Sources)
+            {
+                int idx = mesh.GetBlendShapeIndex(source.Name);
+                if (idx == -1)
+                    continue;
+
+                if (!source.Datas.Any(x => x.Name == name)) 
+                    source.Datas.Add(new() { Name = source.Name, Weight = 1 });
+            }
         }
 
         public void Start() => Initialize();
