@@ -15,7 +15,7 @@ namespace gomoru.su.MMDBlendshapeGenerator
         {
             InPhase(BuildPhase.Generating).Run("Generate MMD Blendshape", context =>
             {
-                if (context.AvatarRootObject.GetComponentInChildren<MMDBlendshapeGenerator>() is not { Body: { } body, Sources: { Length: > 0 } sources } generator)
+                if (context.AvatarRootObject.GetComponentInChildren<MMDBlendshapeGenerator>() is not { Body: { } body, Sources: { Length: > 0 } sources } generator || !generator.enabled)
                     return;
 
                 var smr = body.GetComponentInChildren<SkinnedMeshRenderer>();
