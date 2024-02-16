@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using gomoru.su.MMDBlendshapeGenerator;
 using nadena.dev.ndmf;
@@ -24,7 +25,6 @@ namespace gomoru.su.MMDBlendshapeGenerator
                 AssetDatabase.AddObjectToAsset(mesh, context.AssetContainer);
                 mesh.ClearBlendShapes();
 
-
                 int vertexCount = mesh.vertexCount;
 
                 var verticies = new Vector3[vertexCount];
@@ -34,35 +34,17 @@ namespace gomoru.su.MMDBlendshapeGenerator
                 var normals2 = new Vector3[vertexCount];
                 var tangents2 = new Vector3[vertexCount];
 
+                Dictionary<string, BlendshapeSource> dict = sources.Where(x => x.Datas.Count > 0 && x.Datas.Any(x => x.Weight != 0 && origmesh.GetBlendShapeIndex(x.Name) != -1)).ToDictionary(x => x.Name);
+
                 for(int i = 0; i < origmesh.blendShapeCount; i++)
                 {
                     var name = origmesh.GetBlendShapeName(i);
                     var shapeWeight = origmesh.GetBlendShapeFrameWeight(i, 0);
 
-                    if (sources.FirstOrDefault(x => x.Name == name) is { Datas: { Count: > 0 } datas } source && !datas.All(x => x.Weight == 0))
+                    if (dict.TryGetValue(name, out var source))
                     {
-                        foreach (var data in source.Datas)
-                        {
-                            if (data.Weight == 0)
-                                continue;
-                                
-                            var targetIdx = origmesh.GetBlendShapeIndex(data.Name);
-                            if (targetIdx == -1)
-                                continue;
-
-                            origmesh.GetBlendShapeFrameVertices(targetIdx, 0, verticies2, normals2, tangents2);
-
-                            var origweight = smr.GetBlendShapeWeight(targetIdx) / 100;
-                            var weight = Mathf.Abs(data.Weight);
-                            float isCancel = data.Weight < 0 ? -origweight : 1;
-
-                            for (int i2 = 0; i2 < vertexCount; i2++)
-                            {
-                                verticies[i2] = Vector3.Lerp(verticies[i2], verticies[i2] + verticies2[i2] * isCancel, weight);
-                                normals[i2] = Vector3.Lerp(normals[i2], normals[i2] + normals2[i2] * isCancel, weight);
-                                tangents[i2] = Vector3.Lerp(tangents[i2], tangents[i2] + tangents2[i2] * isCancel, weight);
-                            }
-                        }
+                        Blend(source);
+                        dict.Remove(name);
                     }
                     else
                     {
@@ -76,9 +58,45 @@ namespace gomoru.su.MMDBlendshapeGenerator
                     tangents.Clear();
                 }
 
+                foreach(var (_, source) in dict)
+                {
+                    Blend(source);
+                    mesh.AddBlendShapeFrame(source.Name, 100, verticies, normals, tangents);
+
+                    verticies.Clear();
+                    normals.Clear();
+                    tangents.Clear();
+                }
+
                 smr.sharedMesh = mesh;
 
                 GameObject.DestroyImmediate(generator);
+
+                void Blend(BlendshapeSource source)
+                {
+                    foreach (var data in source.Datas)
+                    {
+                        if (data.Weight == 0)
+                            continue;
+
+                        var targetIdx = origmesh.GetBlendShapeIndex(data.Name);
+                        if (targetIdx == -1)
+                            continue;
+
+                        origmesh.GetBlendShapeFrameVertices(targetIdx, 0, verticies2, normals2, tangents2);
+
+                        var origweight = smr.GetBlendShapeWeight(targetIdx) / 100;
+                        var weight = Mathf.Abs(data.Weight);
+                        float isCancel = data.Weight < 0 ? -origweight : 1;
+
+                        for (int i2 = 0; i2 < vertexCount; i2++)
+                        {
+                            verticies[i2] = Vector3.Lerp(verticies[i2], verticies[i2] + verticies2[i2] * isCancel, weight);
+                            normals[i2] = Vector3.Lerp(normals[i2], normals[i2] + normals2[i2] * isCancel, weight);
+                            tangents[i2] = Vector3.Lerp(tangents[i2], tangents[i2] + tangents2[i2] * isCancel, weight);
+                        }
+                    }
+                }
             });
         }
     }
