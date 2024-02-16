@@ -4,6 +4,7 @@ using VRC.SDKBase;
 namespace gomoru.su.MMDBlendshapeGenerator
 {
     [ExecuteInEditMode]
+    [RequireComponent(typeof(SkinnedMeshRenderer))]
     public sealed class MMDBlendshapeGenerator : MonoBehaviour, IEditorOnly
     {
         public GameObject Body;
