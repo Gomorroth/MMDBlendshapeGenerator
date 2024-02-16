@@ -139,24 +139,17 @@ namespace gomoru.su.MMDBlendshapeGenerator
             serializedObject.ApplyModifiedProperties();
         }
 
-        [MenuItem("CONTEXT/MMDBlendshapeGenerator/Add blendshapes that already exist")]
+        [MenuItem("CONTEXT/MMDBlendshapeGenerator/Remove unnecessary keys")]
         public static void AddExistBlendshapes(MenuCommand menu)
         {
             var generator = menu.context as MMDBlendshapeGenerator;
             var smr = generator.GetComponent<SkinnedMeshRenderer>();
 
-            Undo.RecordObject(generator, "Add blendshapes that already exist");
+            Undo.RecordObject(generator, "Remove unnecessary keys");
 
-            foreach (var blendshape in smr.EnumerateBlendshapes().Where(x => x.Weight != 0))
-            {
-                foreach (var source in generator.Sources)
-                {
-                    source.Datas.Add(new() { Name = blendshape.Name, Weight = 0 });
-                }
-            }
             foreach (var source in generator.Sources)
             {
-                source.Datas.Add(new() { Name = source.Name, Weight = 1 });
+                source.Datas.RemoveAll(x => x.Weight == 0 || smr.sharedMesh.GetBlendShapeIndex(x.Name) == -1);
             }
 
             EditorUtility.SetDirty(generator);
