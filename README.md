@@ -10,7 +10,7 @@
 
 プロジェクト内の適当な場所で `git clone https://github.com/Gomorroth/MMDBlendshapeGenerator.git`
 
-VCC対応はそのうちやるかも
+~~VCC対応はそのうちやるかも~~ **しました** [こちら](https://gomorroth.github.io/vpm-repos)からどうぞ 
 
 ## 使い方
 
